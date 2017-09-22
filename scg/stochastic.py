@@ -22,7 +22,7 @@ class Normal(StochasticPrototype):
         self.size = size
 
     def noise(self, batch=1):
-        return tf.random_normal(tf.pack([batch, self.size]))
+        return tf.random_normal(tf.stack([batch, self.size]))
 
     def params(self, mu=None, pre_sigma=None):
         if mu is None:

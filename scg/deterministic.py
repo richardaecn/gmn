@@ -119,12 +119,12 @@ class Concat(NodePrototype):
 
     def flow(self, **inputs):
         values = [value for value in inputs.itervalues()]
-        return tf.concat(self.index, values)
+        return tf.concat(values, self.index)
 
 
 def concat(inputs, index=1):
     input_dict = dict()
-    for i in xrange(len(inputs)):
+    for i in range(len(inputs)):
         input_dict['concat_' + str(i)] = inputs[i]
     return Concat(index)(**input_dict)
 
@@ -160,12 +160,12 @@ class Pack(NodePrototype):
         NodePrototype.__init__(self)
 
     def flow(self, **inputs):
-        return tf.pack([input for input in inputs.itervalues()])
+        return tf.stack([input for input in inputs.itervalues()])
 
 
 def pack(*inputs):
     input_dict = dict()
-    for i in xrange(len(inputs)):
+    for i in range(len(inputs)):
         input_dict['pack_' + str(i)] = inputs[i]
     return Pack()(**input_dict)
 
@@ -195,11 +195,11 @@ class BatchRepeat(NodePrototype):
         if batch is None:
             batch = self.batch
         input = tf.expand_dims(input, 0)
-        shape = tf.unpack(tf.shape(input))
+        shape = tf.unstack(tf.shape(input))
         shape[0] = batch
-        for i in xrange(1, len(shape)):
+        for i in range(1, len(shape)):
             shape[i] = 1
-        return tf.tile(input, tf.pack(shape))
+        return tf.tile(input, tf.stack(shape))
 
 
 def split(node, num_splits):
@@ -219,7 +219,7 @@ class Reshape(NodePrototype):
     def flow(self, input=None):
         assert input is not None
         sh = tf.shape(input)
-        return tf.reshape(input, tf.pack([sh[0]] + self.shape))
+        return tf.reshape(input, tf.stack([sh[0]] + self.shape))
 
 
 class Add(NodePrototype):

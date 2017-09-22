@@ -56,10 +56,10 @@ class GRU(NodePrototype):
         assert input is not None
         assert state is not None
 
-        total_input = tf.concat(1, [input, state])
-        r, u = tf.split(1, 2, tf.sigmoid(tf.matmul(total_input, self.w_gates) + self.b_gates))
+        total_input = tf.concat([input, state], 1)
+        r, u = tf.split(tf.sigmoid(tf.matmul(total_input, self.w_gates) + self.b_gates), 2, 1)
 
-        gated_input = tf.concat(1, [input, r * state])
+        gated_input = tf.concat([input, r * state], 1)
         c = dispatch_function(tf.matmul(gated_input, self.w_candidate) + self.b_candidate,
                               self.fun, **self.args)
 
@@ -85,7 +85,7 @@ class Attention(NodePrototype):
         mem_norm = tf.sqrt(tf.reduce_sum(tf.square(mem), [2]))
         key_norm = tf.clip_by_value(key_norm, 1e-45, 1e45)
         mem_norm = tf.clip_by_value(mem_norm, 1e-45, 1e45)
-        sim = tf.batch_matmul(tf.expand_dims(key, 1), mem, adj_y=True)
+        sim = tf.matmul(tf.expand_dims(key, 1), mem, adjoint_b=True)
         sim = tf.squeeze(sim, [1])
         # sim = tf.transpose(sim)
         # sim /= tf.transpose(mem_norm)
@@ -107,4 +107,4 @@ class AttentiveReader(NodePrototype):
         assert mem is not None
 
         # with tf.control_dependencies([tf.Print(attention, [attention[0, :]])]):
-        return tf.squeeze(tf.batch_matmul(tf.expand_dims(attention, 1), mem), [1])
+        return tf.squeeze(tf.matmul(tf.expand_dims(attention, 1), mem), [1])

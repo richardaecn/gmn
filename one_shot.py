@@ -252,7 +252,7 @@ class VAE(object):
 
             w[i] = gen_ll[VAE.observed_name(i)] + gen_ll[VAE.hidden_name(i)] - rec_ll[VAE.hidden_name(i)]
 
-        w = tf.pack(w)
+        w = tf.stack(w)
 
         return w, [gen_ll, rec_ll]
 
@@ -275,7 +275,7 @@ def effective_sample_size(gen_ll, rec_ll):
     for t in range(episode_length):
         w_t = gen_ll[VAE.hidden_name(t)] - rec_ll[VAE.hidden_name(t)]
         w.append(w_t)
-    w = tf.pack(w)
+    w = tf.stack(w)
     max_w = tf.reduce_max(w, 0)
     adjusted_w = w - max_w
     exp_w = tf.exp(adjusted_w)
@@ -291,7 +291,7 @@ def entropy(samples):
         h = 0.5 * (1. + np.log(np.pi) + np.log(2.) + 2 * tf.log(sigma))
         result.append(tf.reduce_sum(h))
         # result.append(tf.reduce_mean(sigma))
-    return tf.pack(result)
+    return tf.stack(result)
 
 train_pred_lb = predictive_lb(weights)
 train_pred_ll = predictive_ll(weights)
@@ -337,7 +337,7 @@ with tf.Session() as sess:
         saver.restore(sess, args.checkpoint)
     else:
         print('starting from scratch')
-        sess.run(tf.initialize_all_variables())
+        sess.run(tf.global_variables_initializer())
 
     data_threads = [Thread(target=data_loop, args=[coord]) for i in range(1)]
 
@@ -388,7 +388,7 @@ with tf.Session() as sess:
         reconstructions = [None] * episode_length
         for i in range(episode_length):
             reconstructions[i] = tf.sigmoid(train_samples[VAE.observed_name(i) + '_logit'][0, :])
-        reconstructions = tf.pack(reconstructions)
+        reconstructions = tf.stack(reconstructions)
         original_input = input_data[0, :, :]
 
         while True:
@@ -416,7 +416,7 @@ with tf.Session() as sess:
         logits = []
         for t in range(episode_length+1):
             logits.append(tf.sigmoid(train_samples[VAE.observed_name(t) + '_logit']))
-        logits = tf.pack(logits)
+        logits = tf.stack(logits)
 
         while True:
             classes = put_new_data(data, input_batch[:1], args.max_classes,
@@ -466,7 +466,7 @@ with tf.Session() as sess:
         mu = []
         for t in range(episode_length):
             mu.append(train_samples[VAE.hidden_name(t) + '_mu'])
-        mu = tf.squeeze(tf.pack(mu))
+        mu = tf.squeeze(tf.stack(mu))
 
         sim = np.zeros([args.max_classes, episode_length - 1])
 

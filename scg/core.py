@@ -82,18 +82,18 @@ class NodePrototype:
 
     @staticmethod
     def flatten(output):
-        sh = tf.unpack(tf.shape(output))
+        sh = tf.unstack(tf.shape(output))
         batch, output_shape = sh[0], sh[1:]
         flat_shape = 1
         for d in output_shape:
             flat_shape *= d
 
-        return tf.reshape(output, tf.pack([batch, flat_shape]))
+        return tf.reshape(output, tf.stack([batch, flat_shape]))
 
     @staticmethod
     def reshape(input, shape):
         batch = tf.shape(input)[0]
-        return tf.reshape(input, tf.pack([batch] + shape))
+        return tf.reshape(input, tf.stack([batch] + shape))
 
     @property
     def variables(self):

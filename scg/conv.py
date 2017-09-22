@@ -54,10 +54,10 @@ class Convolution2d(NodePrototype):
         assert input is not None
 
         batch = tf.shape(input)[0]
-        input = tf.reshape(input, tf.pack([batch] + self.input_shape))
+        input = tf.reshape(input, tf.stack([batch] + self.input_shape))
 
         if self.transpose:
-            output = tf.nn.conv2d_transpose(input, self.filters, tf.pack([batch] + self.output_shape),
+            output = tf.nn.conv2d_transpose(input, self.filters, tf.stack([batch] + self.output_shape),
                                             self.strides, self.padding)
         else:
             output = tf.nn.conv2d(input, self.filters, self.strides, self.padding)
@@ -81,7 +81,7 @@ class Padding(NodePrototype):
     def flow(self, input=None):
         assert input is not None
         batch = tf.shape(input)[0]
-        x = tf.reshape(input, tf.pack([batch] + self.input_shape))
+        x = tf.reshape(input, tf.stack([batch] + self.input_shape))
         x = tf.pad(x, [[0, 0]] + self.paddings)
         return NodePrototype.flatten(x)
 
@@ -113,7 +113,7 @@ class Pooling(NodePrototype):
             'max': tf.nn.max_pool
         }
         batch = tf.shape(input)[0]
-        input = tf.reshape(input, tf.pack([batch] + self.input_shape))
+        input = tf.reshape(input, tf.stack([batch] + self.input_shape))
         x = funs[self.fun](input, self.kernel_size, self.strides, self.padding)
         return NodePrototype.flatten(x)
 
