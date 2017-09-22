@@ -40,12 +40,12 @@ class ResNet:
             if not downscale:
                 pool = scg.ResizeImage(scaled_shape, float(conv.shape[0]) / float(scaled_shape[0]))
 
-        blocks = [ResNet.res_block(conv.shape, block_kernel, scale_filters, init=init) for l in xrange(num_blocks - 1)]
+        blocks = [ResNet.res_block(conv.shape, block_kernel, scale_filters, init=init) for l in range(num_blocks - 1)]
         blocks.append(ResNet.res_block(conv.shape, block_kernel, scale_filters, init=init, lastfun=lastfun))
 
         def _apply(x):
             h = conv(input=x)
-            for layer in xrange(num_blocks):
+            for layer in range(num_blocks):
                 h = blocks[layer](h)
             if shortcut:
                 h = scg.add(pool(input=scale(input=x)), h)
@@ -77,7 +77,7 @@ class SetRepresentation:
 
         self.dummy_match = []
         self.dummy_proto = []
-        for i in xrange(num_dummies):
+        for i in range(num_dummies):
             self.dummy_proto.append(scg.Constant(tf.Variable(tf.random_uniform([proto_dim],
                                                                                minval=-1. / proto_dim,
                                                                                maxval=1. / proto_dim),
@@ -101,7 +101,7 @@ class SetRepresentation:
             data += [scg.batch_repeat(dummy, state) for dummy in self.dummy_proto]
         proto_mem = Memory.build(data)
 
-        data = [self.match(input=obs[t]) for t in xrange(timestep)]
+        data = [self.match(input=obs[t]) for t in range(timestep)]
         if dummy:
             data += [scg.batch_repeat(dummy, state) for dummy in self.dummy_match]
         match_mem = Memory.build(data)
@@ -115,7 +115,7 @@ class SetRepresentation:
             return r, state
 
         r = None
-        for step in xrange(num_steps):
+        for step in range(num_steps):
             q = query(state)
             a = scg.Attention()(mem=match_mem, key=q, strength=strength(state))
             r = scg.AttentiveReader()(attention=a, mem=proto_mem)
@@ -135,7 +135,7 @@ def put_new_data(data, batch, max_classes, classes=None, conditional=False):
     else:
         classes = np.repeat(classes[None, :], batch.shape[0], 0)
 
-    for j in xrange(batch.shape[0]):
+    for j in range(batch.shape[0]):
         # classes_idx = [424, 323, 323, 323, 424, 424, 323, 323, 323, 323]
         # objects_idx = [4, 11, 2, 6, 18, 19, 0, 3, 10, 13]
         # classes_idx = [2, 7, 2, 7, 2, 7, 2, 7, 7, 2]
@@ -194,7 +194,7 @@ def likelihood_classification(w, n_classes, n_samples):
 def draw_episode(episode):
     episode_length = episode.shape[0]
     img = []
-    for t in xrange(episode_length):
+    for t in range(episode_length):
         img.append(episode[t].reshape(28, 28))
     img = np.hstack(img)
     plt.imshow(img)
