@@ -1,4 +1,4 @@
-from core import *
+from scg.core import *
 
 
 def glorot_normal(input_size, output_size, fun=None, shape=None):

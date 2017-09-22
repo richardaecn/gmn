@@ -176,16 +176,16 @@ class VAE(object):
         # allocating observations
 
         self.obs = [None] * episode_length
-        for t in xrange(episode_length):
+        for t in range(episode_length):
             current_data = input_data[:, t, :]
             self.obs[t] = scg.Constant(value=current_data, shape=[28*28])(name=VAE.observed_name(t))
 
         # pre-computing features
         self.features = []
-        for t in xrange(episode_length):
+        for t in range(episode_length):
             self.features.append(self.rec.get_features(self.obs[t]))
 
-        for timestep in xrange(episode_length+1):
+        for timestep in range(episode_length+1):
             dummy = True
             if args.no_dummy and timestep > 0:
                 dummy = False
@@ -232,11 +232,11 @@ class VAE(object):
     def sample(self, cache=None):
         if cache is None:
             cache = {}
-        for i in xrange(episode_length):
+        for i in range(episode_length):
             time_start = time.time()
             self.z[i].backtrace(cache)
             self.x[i].backtrace(cache)
-            print i, time.time() - time_start
+            print(i, time.time() - time_start)
         return cache
 
     def importance_weights(self, cache):
@@ -246,7 +246,7 @@ class VAE(object):
         # w[t][i] -- likelihood ratio for the i-th object after t objects has been seen
         w = [0.] * episode_length
 
-        for i in xrange(episode_length):
+        for i in range(episode_length):
             scg.likelihood(self.z[i], cache, rec_ll)
             scg.likelihood(self.x[i], cache, gen_ll)
 
@@ -272,7 +272,7 @@ weights, ll = vae.importance_weights(train_samples)
 
 def effective_sample_size(gen_ll, rec_ll):
     w = []
-    for t in xrange(episode_length):
+    for t in range(episode_length):
         w_t = gen_ll[VAE.hidden_name(t)] - rec_ll[VAE.hidden_name(t)]
         w.append(w_t)
     w = tf.pack(w)
@@ -286,7 +286,7 @@ def effective_sample_size(gen_ll, rec_ll):
 
 def entropy(samples):
     result = []
-    for t in xrange(episode_length):
+    for t in range(episode_length):
         sigma = tf.nn.softplus(tf.clip_by_value(samples[VAE.hidden_name(t) + '_prior_sigma'], -10., 10.))
         h = 0.5 * (1. + np.log(np.pi) + np.log(2.) + 2 * tf.log(sigma))
         result.append(tf.reduce_sum(h))
@@ -333,13 +333,13 @@ with tf.Session() as sess:
 
     coord = tf.train.Coordinator()
     if args.checkpoint is not None and os.path.exists(args.checkpoint):
-        print 'checkpoint found, restoring'
+        print('checkpoint found, restoring')
         saver.restore(sess, args.checkpoint)
     else:
-        print 'starting from scratch'
+        print('starting from scratch')
         sess.run(tf.initialize_all_variables())
 
-    data_threads = [Thread(target=data_loop, args=[coord]) for i in xrange(1)]
+    data_threads = [Thread(target=data_loop, args=[coord]) for i in range(1)]
 
     if args.test is None and args.generate is None and args.classification is None and args.likelihood_classification is None:
         for t in data_threads:
@@ -355,10 +355,10 @@ with tf.Session() as sess:
         if args.prior_entropy:
             target = prior_entropy
 
-        for j in xrange(args.test_episodes):
+        for j in range(args.test_episodes):
             if full:
                 put_new_data(test_data, batch_data[:1, :, :], args.max_classes, conditional=args.conditional)
-                for t in xrange(1, batch_data.shape[0]):
+                for t in range(1, batch_data.shape[0]):
                     batch_data[t] = batch_data[0]
             else:
                 put_new_data(test_data, batch_data[:, :, :], args.max_classes, conditional=args.conditional)
@@ -369,12 +369,11 @@ with tf.Session() as sess:
             msg = '\rtesting %d' % j
             if args.prior_entropy:
                 msg = '\rentropy %d' % j
-            for t in xrange(episode_length):
+            for t in range(episode_length):
                 msg += ' %.2f' % avg_predictive_ll[t]
             sys.stdout.write(msg)
             if j == args.test_episodes-1:
-                print
-                log.info(msg)
+                print(log.info(msg))
 
     num_epochs = 0
     done_epochs = epoch_passed.eval(sess)
@@ -387,7 +386,7 @@ with tf.Session() as sess:
         sys.exit()
     elif args.reconstructions:
         reconstructions = [None] * episode_length
-        for i in xrange(episode_length):
+        for i in range(episode_length):
             reconstructions[i] = tf.sigmoid(train_samples[VAE.observed_name(i) + '_logit'][0, :])
         reconstructions = tf.pack(reconstructions)
         original_input = input_data[0, :, :]
@@ -405,7 +404,7 @@ with tf.Session() as sess:
         sys.exit()
     elif args.generate is not None:
         train_samples.clear()
-        for t in xrange(episode_length+1):
+        for t in range(episode_length+1):
             if t < episode_length:
                 train_samples[VAE.observed_name(t)] = input_data[:, t, :]
             obs = vae.generate(t, False if args.no_dummy and t > 0 else True)
@@ -415,16 +414,16 @@ with tf.Session() as sess:
         input_batch = np.zeros([batch_size, episode_length, data_dim])
 
         logits = []
-        for t in xrange(episode_length+1):
+        for t in range(episode_length+1):
             logits.append(tf.sigmoid(train_samples[VAE.observed_name(t) + '_logit']))
         logits = tf.pack(logits)
 
         while True:
             classes = put_new_data(data, input_batch[:1], args.max_classes,
                                    classes=args.classes, conditional=args.conditional)
-            print 'generating classes ', classes
+            print('generating classes ', classes)
 
-            for j in xrange(1, input_batch.shape[0]):
+            for j in range(1, input_batch.shape[0]):
                 input_batch[j] = input_batch[0]
 
             # gs = gridspec.GridSpec(episode_length+1, args.generate + 1)
@@ -433,14 +432,14 @@ with tf.Session() as sess:
                                   figsize=(8, 8))
 
             axs[0, 0].matshow(np.zeros([28, 28]), cmap=plt.get_cmap('gray'))
-            for t in xrange(episode_length):
+            for t in range(episode_length):
                 axs[t+1, 0].matshow(input_batch[0, t, :].reshape(28, 28),
                                   cmap=plt.get_cmap('gray'))
 
             img = sess.run(logits, feed_dict={input_data: input_batch})
 
-            for t in xrange(episode_length+1):
-                for k in xrange(batch_size):
+            for t in range(episode_length+1):
+                for k in range(batch_size):
                     if args.conditional and t <= args.max_classes:
                         axs[t, k+1].matshow(np.zeros([28, 28]), cmap=plt.get_cmap('gray'))
                     else:
@@ -465,7 +464,7 @@ with tf.Session() as sess:
         sys.exit()
     elif args.classification is not None:
         mu = []
-        for t in xrange(episode_length):
+        for t in range(episode_length):
             mu.append(train_samples[VAE.hidden_name(t) + '_mu'])
         mu = tf.squeeze(tf.pack(mu))
 
@@ -482,8 +481,8 @@ with tf.Session() as sess:
             test_mu = batch_mu[-1, :, :]
             batch_mu = np.vstack([test_mu, train_mu])
 
-            # for k in xrange(args.max_classes):
-            #     for j in xrange(train_mu.shape[0]):
+            # for k in range(args.max_classes):
+            #     for j in range(train_mu.shape[0]):
             #         sim[k, j] = np.exp(-np.square(np.linalg.norm(test_mu[k] - train_mu[j])) / 3.)
             # return sim
 
@@ -495,8 +494,7 @@ with tf.Session() as sess:
                                            compute_similarities, k_neighbours=args.classification,
                                            num_episodes=args.test_episodes)
 
-        print
-        log.info('accuracy: %f' % accuracy)
+        print(log.info('accuracy: %f' % accuracy))
 
         coord.request_stop()
         # coord.join(data_threads)
@@ -512,35 +510,33 @@ with tf.Session() as sess:
 
         accuracy = blackbox_classification(test_data, args.shots, args.max_classes,
                                            classify, args.test_episodes, args.likelihood_classification)
-        print
-        log.info('accuracy: %f' % accuracy)
+        print(log.info('accuracy: %f' % accuracy))
 
         sys.exit()
 
     avg_pred_lb = np.zeros(episode_length)
 
     for epochs, lr in zip([250, 250, 250], [1e-3, 3e-4, 1e-4]):
-        for epoch in xrange(epochs):
+        for epoch in range(epochs):
             if num_epochs < done_epochs:
                 num_epochs += 1
                 continue
 
             epoch_started = time.time()
             total_batches = 24345 / batch_size / 10  # episode_length
-            for batch in xrange(total_batches):
+            for batch in range(total_batches):
                 pred_lb, i, _ = sess.run([train_pred_lb, global_step, train_op],
                                          feed_dict={learning_rate: lr})
 
                 msg = '\repoch {0}, batch {1} '.format(epoch, i)
                 avg_pred_lb += 0.01 * (pred_lb - avg_pred_lb)
-                for t in xrange(episode_length):
+                for t in range(episode_length):
                     assert not np.isnan(pred_lb[t])
                     msg += ' %.2f' % avg_pred_lb[t]
                 sys.stdout.write(msg)
                 sys.stdout.flush()
                 if batch == total_batches-1:
-                    print
-                    log.info(msg)
+                    print(log.info(msg))
 
             log.debug('time for epoch: %f', (time.time() - epoch_started))
 

@@ -18,11 +18,11 @@ def one_shot_classification(test_data, num_shots, num_classes, compute_similarit
     accuracy = 0.
     votes = np.zeros(num_classes)
 
-    for episode in xrange(num_episodes):
+    for episode in range(num_episodes):
         classes = np.random.choice(test_data.shape[0], num_classes, False)
         classes_idx = np.repeat(classes[:, np.newaxis], num_shots, 1).flatten()
         idx = []
-        for k in xrange(num_classes):
+        for k in range(num_classes):
             idx.append(np.random.choice(test_data.shape[1], num_shots + 1, False))
         idx = np.vstack(idx)
         y = np.repeat(np.arange(num_classes)[:, np.newaxis], num_shots, 1).flatten()
@@ -36,7 +36,7 @@ def one_shot_classification(test_data, num_shots, num_classes, compute_similarit
         # sim[i, j] -- similarity between batch[i, -1] and batch[i, j]
         sim = compute_similarities(batch)
 
-        for k in xrange(num_classes):
+        for k in range(num_classes):
             votes[:] = 0.
             nearest = sim[k].argsort()[-k_neighbours:]
             for j in nearest:
@@ -59,31 +59,31 @@ def blackbox_classification(test_data, num_shots, num_classes, classify,
 
     accuracy = 0.
 
-    for episode in xrange(num_episodes):
+    for episode in range(num_episodes):
         classes = np.random.choice(test_data.shape[0], num_classes, False)
 
         idx = []
-        for k in xrange(num_classes):
+        for k in range(num_classes):
             idx.append(np.random.choice(test_data.shape[1], num_shots + 1, False))
         idx = np.vstack(idx)
 
         def score(k):
             batch[:, -1, :] = test_data[classes[k], idx[k, -1]]
-            for j in xrange(1, batch.shape[0]):
+            for j in range(1, batch.shape[0]):
                 batch[j] = batch[0]
             scores = np.zeros(num_classes)
-            for c in xrange(num_classes):
+            for c in range(num_classes):
                 batch[:, :-1, :] = test_data[classes[c], idx[c, :-1]]
                 scores[c] = classify(batch)
             return scores
 
-        for k in xrange(num_classes):
+        for k in range(num_classes):
             ll = score(k)
             y_hat = ll.argmax()
             if y_hat == k:
                 accuracy += 1
             elif False:
-                print classes[y_hat], classes[k]
+                print(classes[y_hat], classes[k])
                 wrong = np.vstack([test_data[classes[y_hat], idx[y_hat, :-1]], test_data[classes[k], idx[k, -1]]])
                 draw_episode(wrong)
                 right = np.vstack([test_data[classes[k], idx[k, :-1]], test_data[classes[k], idx[k, -1]]])

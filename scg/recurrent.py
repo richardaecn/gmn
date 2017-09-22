@@ -1,5 +1,5 @@
-from core import *
-from deterministic import dispatch_function, glorot_normal, norm_init
+from scg.core import *
+from scg.deterministic import dispatch_function, glorot_normal, norm_init
 
 
 class RNN(NodePrototype):

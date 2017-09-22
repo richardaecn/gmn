@@ -1,5 +1,5 @@
-from core import *
-from deterministic import dispatch_function, glorot_normal, he_normal
+from scg.core import *
+from scg.deterministic import dispatch_function, glorot_normal, he_normal
 
 
 class Convolution2d(NodePrototype):

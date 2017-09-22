@@ -1,4 +1,4 @@
-from core import *
+from scg.core import *
 
 
 def mvn_diag_density(x, mu, sigma):
